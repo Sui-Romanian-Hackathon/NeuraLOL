@@ -1,9 +1,11 @@
+// Importuri NU MODIFICA
 require("dotenv").config();
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const { spawnSync } = require("child_process");
 
 const { getFullnodeUrl, SuiClient } = require("@mysten/sui.js/client");
 const { Ed25519Keypair } = require("@mysten/sui.js/keypairs/ed25519");
@@ -12,10 +14,10 @@ const { TransactionBlock } = require("@mysten/sui.js/transactions");
 const app = express();
 const PORT = 5000;
 
-// Middlewares
+// Middlewares NU MODIFICA
 app.use(
   cors({
-    origin: "http://localhost:3000", // Permite doar frontend-ul local
+    origin: "http://localhost:3000",
   })
 );
 app.use(express.json());
@@ -32,10 +34,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("video/")) cb(null, true);
-    else cb(new Error("Doar fișiere video!"));
+    if (file.mimetype.startsWith("image/")) cb(null, true);
+    else cb(new Error("Doar fișiere imagine!"));
   },
 });
 
@@ -45,31 +47,28 @@ app.get("/", (req, res) => {
 });
 
 // Ruta upload + ML + Recompensă
-app.post("/api/upload", upload.single("video"), async (req, res) => {
+app.post("/api/upload", upload.single("image"), async (req, res) => {
   try {
-    const { walletAddress } = req.body;
-    const videoPath = req.file.path;
+    const imagePath = req.file.path;
+    console.log("Imagine primită pentru ML:", imagePath);
 
-    if (!walletAddress) {
-      return res.status(400).json({ error: "Wallet address lipsă" });
+    // === ML Detection ===
+    const hasTrash = mlDetection(imagePath);
+
+    if (hasTrash === null) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Eroare ML Python" });
     }
 
-    // === ML MOCK (înlocuiește mai târziu) ===
-    const hasTrash = await mockMLDetection(videoPath);
-
     if (hasTrash) {
-      const txHash = await rewardUser(walletAddress);
-      res.json({
-        success: true,
-        message: "Gunoi detectat! Recompensă trimisă.",
-        txHash,
-      });
+      res.json({ success: true, message: "Gunoi detectat!" });
     } else {
       res.json({ success: false, message: "Niciun gunoi detectat." });
     }
 
-    // Șterge video-ul
-    fs.unlinkSync(videoPath);
+    // NU mai ștergem imaginea, astfel rămâne în uploads
+    // fs.unlinkSync(imagePath);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Eroare server" });
@@ -77,36 +76,30 @@ app.post("/api/upload", upload.single("video"), async (req, res) => {
 });
 
 // === FUNCȚII AJUTĂTOARE ===
-
-async function mockMLDetection(videoPath) {
-  console.log("Procesez:", videoPath);
-  await new Promise((r) => setTimeout(r, 2000));
-  return Math.random() > 0.5; // 50% șansă
-}
-
-async function rewardUser(toAddress) {
-  const client = new SuiClient({ url: getFullnodeUrl("testnet") });
-
-  const secretKey = process.env.ADMIN_PRIVATE_KEY;
-  if (!secretKey) throw new Error("Lipsește ADMIN_PRIVATE_KEY în .env");
-
-  const keypair = Ed25519Keypair.fromSecretKey(
-    Buffer.from(secretKey, "base64")
+function mlDetection(imagePath) {
+  const result = spawnSync(
+    "python",
+    [path.join(__dirname, "ml", "predict.py"), imagePath],
+    { encoding: "utf-8" }
   );
 
-  const txb = new TransactionBlock();
-  const [coin] = txb.splitCoins(txb.gas, [1_000_000_000]); // 1 SUI
-  txb.transferObjects([coin], toAddress);
+  console.log("===== Debug ML =====");
+  console.log("Imagine trimisă la Python:", imagePath);
+  console.log("Python stdout:", result.stdout.trim());
+  console.log("Python stderr:", result.stderr.trim());
+  console.log("Python error object:", result.error);
 
-  const result = await client.signAndExecuteTransactionBlock({
-    signer: keypair,
-    transactionBlock: txb,
-  });
+  if (result.error || result.status !== 0) {
+    console.error("Python a dat eroare la rulare ML");
+    return null; // eroare
+  }
 
-  return result.digest;
+  const output = result.stdout.trim().split("\n").pop();  // ultima linie
+  return output === "Garbage";
+
 }
 
-// Pornire server
+// Pornire server  NU MODIFICA
 app.listen(PORT, () => {
   console.log(`Backend: http://localhost:${PORT}`);
 });

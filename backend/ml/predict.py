@@ -5,6 +5,8 @@ import os
 import sys
 import hashlib
 
+import warnings
+warnings.filterwarnings("ignore")  # ignoră warnings
 # ---------------------------------------------------------
 # 1. Functie de predictie
 # ---------------------------------------------------------
@@ -19,10 +21,10 @@ def predict_image(model, img_path):
 # 2. Functie dummy de blockchain (pentru test)
 # ---------------------------------------------------------
 def save_to_blockchain(image_hash, result):
-    print("=== Blockchain mock ===")
-    print(f"Image hash: {image_hash}")
-    print(f"Prediction stored: {result}")
-    print("=======================")
+   # print("=== Blockchain mock ===")
+   # print(f"Image hash: {image_hash}")
+   # print(f"Prediction stored: {result}")
+   # print("=======================")
     # aici vei pune call-ul real către Sui
     return True
 
@@ -30,7 +32,7 @@ def save_to_blockchain(image_hash, result):
 # 3. Load model
 # ---------------------------------------------------------
 try:
-    model = load_model("garbage_detector.h5")
+    model = load_model("ml/garbage_detector.h5")
 except Exception as e:
     print(f"Eroare la încărcarea modelului: {e}")
     sys.exit(1)
@@ -38,7 +40,7 @@ except Exception as e:
 # ---------------------------------------------------------
 # 4. Check image exists
 # ---------------------------------------------------------
-img_path = "test.jpg"
+img_path = sys.argv[1] 
 if not os.path.exists(img_path):
     print(f"Imaginea nu există: {img_path}")
     sys.exit(1)
@@ -47,7 +49,7 @@ if not os.path.exists(img_path):
 # 5. Predictie
 # ---------------------------------------------------------
 label, probability = predict_image(model, img_path)
-print(f"Rezultat: {label} (prob={probability:.2f})")
+#print(f"Rezultat: {label} (prob={probability:.2f})")
 
 # ---------------------------------------------------------
 # 6. Hash imagine
@@ -55,9 +57,11 @@ print(f"Rezultat: {label} (prob={probability:.2f})")
 with open(img_path, "rb") as f:
     image_hash = hashlib.sha256(f.read()).hexdigest()
 
-print(f"SHA256 imagine: {image_hash}")
+#print(f"SHA256 imagine: {image_hash}")
 
 # ---------------------------------------------------------
-# 7. Salvare pe blockchain (mock)
+# 7. Salvare rezultat în blockchain (mock)
 # ---------------------------------------------------------
-save_to_blockchain(image_hash, label)
+label, probability = predict_image(model, img_path)
+print(label, flush=True)  # doar "Garbage" sau "Clean"
+
