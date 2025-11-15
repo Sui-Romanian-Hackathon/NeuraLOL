@@ -13,32 +13,49 @@ export default function Uploads({ walletAddress, requestSui }) {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
-      setMessage("Te rog să selectezi un fișier.");
-      return;
-    }
+  if (!selectedFile) {
+    setMessage("Te rog să selectezi un fișier.");
+    return;
+  }
 
-    setLoading(true);
-    setMessage("");
+ /* if (!walletAddress) {
+    setMessage("Te rog să introduci walletAddress.");
+    return;
+  }*/
 
-    try {
-      // 1. Upload pe IPFS (poți integra pinata/ipfs-http-client etc.)
-      // aici doar simulăm upload-ul:
-      const fileUrl = `https://ipfs.io/ipfs/${selectedFile.name}`;
-      console.log("Imagine încărcată la:", fileUrl);
+  setLoading(true);
+  setMessage("");
 
-      // 2. Request către faucet
-      await requestSui(walletAddress);
-      setMessage(
-        `SUI adăugat cu succes în wallet! Imaginea este la ${fileUrl}`
-      );
-    } catch (err) {
-      console.error(err);
-      setMessage("A apărut o eroare la upload sau la faucet.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const formData = new FormData();
+    formData.append("image", selectedFile);
+   // formData.append("walletAddress", walletAddress);
+
+    // Trimite la backend
+    const res = await fetch("http://localhost:5000/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    console.log("Backend Response:", data);
+
+    if (data.success) {
+  setMessage(
+    `Gunoi detectat! Probabilitate: ${(data.probability * 100).toFixed(1)}%.`
+  );
+} else {
+  setMessage(`Niciun gunoi detectat. Probabilitate: ${(data.probability * 100).toFixed(1)}%`);
+}
+
+  } catch (err) {
+    console.error(err);
+    setMessage("A apărut o eroare la upload sau la ML.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Box sx={{ mt: 2 }}>
