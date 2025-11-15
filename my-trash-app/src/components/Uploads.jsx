@@ -42,10 +42,10 @@ export default function Uploads({ walletAddress, requestSui }) {
 
     if (data.success) {
   setMessage(
-    `Gunoi detectat! Probabilitate: ${(data.probability * 100).toFixed(1)}%.`
+    `Gunoi detectat!`
   );
 } else {
-  setMessage(`Niciun gunoi detectat. Probabilitate: ${(data.probability * 100).toFixed(1)}%`);
+  setMessage(`Niciun gunoi detectat.`);
 }
 
   } catch (err) {
