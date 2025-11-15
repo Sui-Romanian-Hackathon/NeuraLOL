@@ -1,3 +1,4 @@
+// src/pages/Dashboard.js
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -21,16 +22,35 @@ import Transactions from "../components/Transactions";
 import Uploads from "../components/Uploads";
 import Balance from "../components/Balance";
 import NFTs from "../components/NFTs";
+import Clasament from "../components/Clasament";
+import Notificari from "../components/Notificari";
+import { useUser } from "../context/UserContext";
+import Raportari from "../components/Raportari";
+import StatusSesizari from "../components/StatusSesizari";
+import Statistici from "../components/Statistici";
 
-const TAB_PATHS = [
-  "/dashboard/account",
-  "/dashboard/transactions",
-  "/dashboard/uploads",
-  "/dashboard/balance",
-  "/dashboard/nfts",
-];
 
-const TAB_LABELS = ["Cont", "Tranzacții", "Uploaduri", "Sold", "NFT"];
+// Component pentru selectarea tipului de utilizator
+function UserTypeSelector() {
+  const { userType, setUserType } = useUser();
+
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Typography variant="body1" color="white">
+        Tip utilizator:
+      </Typography>
+      <Select
+        value={userType}
+        onChange={(e) => setUserType(e.target.value)}
+        size="small"
+        sx={{ color: "white", borderColor: "white" }}
+      >
+        <MenuItem value="user">Utilizator</MenuItem>
+        <MenuItem value="admin">Admin</MenuItem>
+      </Select>
+    </Box>
+  );
+}
 
 export default function Dashboard() {
   const location = useLocation();
@@ -43,13 +63,42 @@ export default function Dashboard() {
 
   const [value, setValue] = useState(0);
 
+  // Definim tab-urile în funcție de tipul utilizatorului
+  const allTabs = {
+    user: [
+      { label: "Cont", path: "/dashboard/account", component: <Account /> },
+      { label: "Tranzacții", path: "/dashboard/transactions", component: <Transactions /> },
+      { label: "Uploaduri", path: "/dashboard/uploads", component: <Uploads /> },
+      { label: "Sold", path: "/dashboard/balance", component: <Balance /> },
+      { label: "NFT", path: "/dashboard/nfts", component: <NFTs /> },
+      { label: "Clasament", path: "/dashboard/clasament", component: <Clasament /> },
+      { label: "Notificări", path: "/dashboard/notificari", component: <Notificari /> },
+
+    ],
+    admin: [
+      { label: "Cont", path: "/dashboard/account", component: <Account /> },
+      { label: "Tranzacții", path: "/dashboard/transactions", component: <Transactions /> },
+      { label: "Sold", path: "/dashboard/balance", component: <Balance /> },
+      { label: "NFT", path: "/dashboard/nfts", component: <NFTs /> },
+      { label: "Clasament", path: "/dashboard/clasament", component: <Clasament /> },
+      { label: "Notificări", path: "/dashboard/notificari", component: <Notificari /> },
+      { label: "Raportări", path: "/dashboard/raportari", component: <Raportari /> },
+    { label: "Status Sesizări", path: "/dashboard/status-sesizari", component: <StatusSesizari /> },
+    { label: "Statistici", path: "/dashboard/statistici", component: <Statistici /> },
+    ],
+  };
+
+  const tabs = allTabs[userType] || allTabs.user;
+
+  const TAB_PATHS = tabs.map((t) => t.path);
+  const TAB_LABELS = tabs.map((t) => t.label);
+
+  // Sincronizare tab cu URL
   useEffect(() => {
     const idx = TAB_PATHS.findIndex((p) => location.pathname.startsWith(p));
-
     if (idx !== -1) setValue(idx);
-    else if (location.pathname === "/dashboard")
-      navigate("/dashboard/account", { replace: true });
-  }, [location.pathname, navigate]);
+    else if (location.pathname === "/dashboard") navigate(TAB_PATHS[0], { replace: true });
+  }, [location.pathname, navigate, TAB_PATHS]);
 
   const handleChange = (_, newValue) => {
     setValue(newValue);
@@ -59,10 +108,9 @@ export default function Dashboard() {
   return (
     <Box sx={{ width: "100%" }}>
       <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Dashboard
-          </Typography>
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+          <Typography variant="h6">Dashboard</Typography>
+          <UserTypeSelector /> {/* Selector tip utilizator */}
         </Toolbar>
       </AppBar>
 

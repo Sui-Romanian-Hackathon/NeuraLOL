@@ -14,10 +14,10 @@ export default function Uploads({ walletAddress }) {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
-      setMessage("Te rog să selectezi un fișier.");
-      return;
-    }
+  if (!selectedFile) {
+    setMessage("Te rog să selectezi un fișier.");
+    return;
+  }
 
     if (!walletAddress) {
       setMessage("Te rog să conectezi wallet-ul.");
