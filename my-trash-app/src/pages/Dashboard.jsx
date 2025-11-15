@@ -53,6 +53,7 @@ function UserTypeSelector() {
 }
 
 export default function Dashboard() {
+  const { userType } = useUser(); // ← THIS WAS MISSING
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();

@@ -17,8 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Folosim Python 3.11 direct
-const pythonExecutable =
-  "/Users/joitafabian/.pyenv/versions/3.11.8/bin/python3";
+const pythonExecutable = os.platform() === "darwin" ? "python3" : "python";
 
 const app = express();
 const PORT = process.env.PORT || 5001;
