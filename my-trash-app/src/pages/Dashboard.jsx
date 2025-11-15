@@ -24,18 +24,6 @@ import Transactions from "../components/Transactions";
 import Uploads from "../components/Uploads";
 import Balance from "../components/Balance";
 import NFTs from "../components/NFTs";
-<<<<<<< Updated upstream
-
-const TAB_PATHS = [
-  "/dashboard/account",
-  "/dashboard/transactions",
-  "/dashboard/uploads",
-  "/dashboard/balance",
-  "/dashboard/nfts",
-];
-
-const TAB_LABELS = ["Cont", "Tranzacții", "Uploaduri", "Sold", "NFT"];
-=======
 import Clasament from "../components/Clasament";
 import Notificari from "../components/Notificari";
 import Raportari from "../components/Raportari";
@@ -80,18 +68,12 @@ function UserTypeSelector() {
     </Box>
   );
 }
->>>>>>> Stashed changes
 
 export default function Dashboard() {
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-<<<<<<< Updated upstream
-
-  const [value, setValue] = useState(0);
-
-=======
   const { userType } = useUser();
   const [value, setValue] = useState(0);
 
@@ -123,14 +105,11 @@ export default function Dashboard() {
   const TAB_PATHS = tabs.map((t) => t.path);
   const TAB_LABELS = tabs.map((t) => t.label);
 
->>>>>>> Stashed changes
   useEffect(() => {
     const idx = TAB_PATHS.findIndex((p) => location.pathname.startsWith(p));
-
     if (idx !== -1) setValue(idx);
-    else if (location.pathname === "/dashboard")
-      navigate("/dashboard/account", { replace: true });
-  }, [location.pathname, navigate]);
+    else if (location.pathname === "/dashboard") navigate(TAB_PATHS[0], { replace: true });
+  }, [location.pathname, navigate, TAB_PATHS]);
 
   const handleChange = (_, newValue) => {
     setValue(newValue);
@@ -138,14 +117,6 @@ export default function Dashboard() {
   };
 
   return (
-<<<<<<< Updated upstream
-    <Box sx={{ width: "100%" }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Dashboard
-          </Typography>
-=======
     <Box sx={{ width: "100%", minHeight: "100vh", backgroundColor: lightGreen }}>
       {/* AppBar */}
       <AppBar
@@ -186,7 +157,6 @@ export default function Dashboard() {
             <Typography sx={{ cursor: "pointer", color: primaryGreen, fontSize: "1.5rem" }}>👤</Typography>
             {!isMobile && <UserTypeSelector />}
           </Box>
->>>>>>> Stashed changes
         </Toolbar>
       </AppBar>
 
@@ -328,23 +298,6 @@ export default function Dashboard() {
         </Tabs>
       )}
 
-<<<<<<< Updated upstream
-      <TabPanel value={value} index={0}>
-        <Account />
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        <Transactions />
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-        <Uploads />
-      </TabPanel>
-      <TabPanel value={value} index={3}>
-        <Balance />
-      </TabPanel>
-      <TabPanel value={value} index={4}>
-        <NFTs />
-      </TabPanel>
-=======
       {/* TabPanel */}
       {tabs.map((tab, idx) => (
         <TabPanel key={tab.path} value={value} index={idx}>
@@ -362,7 +315,6 @@ export default function Dashboard() {
           </Box>
         </TabPanel>
       ))}
->>>>>>> Stashed changes
     </Box>
   );
 }
