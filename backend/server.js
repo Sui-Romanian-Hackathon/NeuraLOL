@@ -77,7 +77,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
       }
 
       try {
-        const txResult = await mintAndSendNeuralol(walletAddress, 100);
+        const txResult = await mintAndSendNeuralol(walletAddress, 0.0001);
         return res.json({
           success: true,
           ml: true,
