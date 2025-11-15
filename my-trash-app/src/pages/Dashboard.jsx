@@ -13,6 +13,8 @@ import {
   useMediaQuery,
 } from "@mui/material";
 
+import { useWalletKit } from "@mysten/wallet-kit";
+
 import TabPanel from "../components/TabPanel";
 import Account from "../components/Account";
 import Transactions from "../components/Transactions";
@@ -35,6 +37,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { currentWallet, isConnected } = useWalletKit();
+
+  const walletAddress = currentWallet?.accounts?.[0]?.address;
 
   const [value, setValue] = useState(0);
 
@@ -84,7 +89,7 @@ export default function Dashboard() {
         <Transactions />
       </TabPanel>
       <TabPanel value={value} index={2}>
-        <Uploads />
+        <Uploads walletAddress={walletAddress} />
       </TabPanel>
       <TabPanel value={value} index={3}>
         <Balance />
