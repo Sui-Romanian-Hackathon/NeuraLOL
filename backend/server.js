@@ -1,105 +1,59 @@
-// Importuri NU MODIFICA
-require("dotenv").config();
-const express = require("express");
-const multer = require("multer");
-const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
-const { spawnSync } = require("child_process");
-
-const { getFullnodeUrl, SuiClient } = require("@mysten/sui.js/client");
-const { Ed25519Keypair } = require("@mysten/sui.js/keypairs/ed25519");
-const { TransactionBlock } = require("@mysten/sui.js/transactions");
+// server.js
+import dotenv from "dotenv";
+dotenv.config(); // MUST be first
+import express from "express";
+import cors from "cors";
+import { mintAndSendNeuralol } from "./contractToken.js";
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 4000;
 
-// Middlewares NU MODIFICA
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-  })
-);
+// Middlewares
+app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
-
-// Folder uploads
-const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
-
-// Multer config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) cb(null, true);
-    else cb(new Error("Doar fișiere imagine!"));
-  },
-});
 
 // Ruta test
 app.get("/", (req, res) => {
+  console.log("SERVER LOG: Cerere GET primită pe /");
   res.json({ message: "Backend-ul funcționează!" });
 });
 
-// Ruta upload + ML + Recompensă
-app.post("/api/upload", upload.single("image"), async (req, res) => {
+// ===== ROUTE: Trimite NEURALOL direct fără upload =====
+app.post("/api/send", async (req, res) => {
+  console.log("SERVER LOG: Cerere POST primită pe /api/send");
+
+  const { walletAddress, amount } = req.body;
+  console.log(
+    `SERVER LOG: Date primite: Adresă=${walletAddress}, Sumă=${amount}`
+  );
+
+  if (!walletAddress) {
+    return res.status(400).json({ error: "Lipseste walletAddress" });
+  }
+
+  const AMOUNT = amount ? Number(amount) : 100; // default 100 NEURALOL
+  console.log(
+    `SERVER LOG: Apelare mintAndSendNeuralol către ${walletAddress} cu ${AMOUNT}.`
+  );
+
   try {
-    const imagePath = req.file.path;
-    console.log("Imagine primită pentru ML:", imagePath);
-
-    // === ML Detection ===
-    const hasTrash = mlDetection(imagePath);
-
-    if (hasTrash === null) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Eroare ML Python" });
-    }
-
-    if (hasTrash) {
-      res.json({ success: true, message: "Gunoi detectat!" });
-    } else {
-      res.json({ success: false, message: "Niciun gunoi detectat." });
-    }
-
-    // NU mai ștergem imaginea, astfel rămâne în uploads
-    // fs.unlinkSync(imagePath);
+    const result = await mintAndSendNeuralol(walletAddress, AMOUNT);
+    res.json({
+      success: true,
+      message: `Trimis ${AMOUNT} NEURALOL către ${walletAddress}`,
+      tx: result,
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Eroare server" });
+    console.error("SERVER LOG: ❌ EROARE CATCH la /api/send:", err);
+    res.status(500).json({
+      success: false,
+      message: `Eroare la tranzacția Sui: ${err.message}`,
+    });
   }
 });
 
-// === FUNCȚII AJUTĂTOARE ===
-function mlDetection(imagePath) {
-  const result = spawnSync(
-    "python",
-    [path.join(__dirname, "ml", "predict.py"), imagePath],
-    { encoding: "utf-8" }
-  );
-
-  console.log("===== Debug ML =====");
-  console.log("Imagine trimisă la Python:", imagePath);
-  console.log("Python stdout:", result.stdout.trim());
-  console.log("Python stderr:", result.stderr.trim());
-  console.log("Python error object:", result.error);
-
-  if (result.error || result.status !== 0) {
-    console.error("Python a dat eroare la rulare ML");
-    return null; // eroare
-  }
-
-  const output = result.stdout.trim().split("\n").pop();  // ultima linie
-  return output === "Garbage";
-
-}
-
-// Pornire server  NU MODIFICA
+// Pornire server
 app.listen(PORT, () => {
-  console.log(`Backend: http://localhost:${PORT}`);
+  console.log("SERVER LOG: Blocul app.listen a fost apelat.");
+  console.log(`✅ Backend: http://localhost:${PORT}`);
 });
