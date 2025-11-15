@@ -1,3 +1,5 @@
+const os = require("os");
+
 // Importuri NU MODIFICA
 require("dotenv").config();
 const express = require("express");
@@ -12,7 +14,9 @@ const { Ed25519Keypair } = require("@mysten/sui.js/keypairs/ed25519");
 const { TransactionBlock } = require("@mysten/sui.js/transactions");
 
 const app = express();
-const PORT = 5000;
+const PORT = 5001;
+
+const pythonExecutable = os.platform() === "darwin" ? "python3" : "python";
 
 // Middlewares NU MODIFICA
 app.use(
@@ -78,10 +82,10 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
 // === FUNCȚII AJUTĂTOARE ===
 function mlDetection(imagePath) {
   const result = spawnSync(
-    "python",
-    [path.join(__dirname, "ml", "predict.py"), imagePath],
-    { encoding: "utf-8" }
-  );
+  pythonExecutable,
+  [path.join(__dirname, "ml", "predict.py"), imagePath],
+  { encoding: "utf-8" }
+);
 
   console.log("===== Debug ML =====");
   console.log("Imagine trimisă la Python:", imagePath);

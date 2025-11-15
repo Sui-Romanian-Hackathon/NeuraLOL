@@ -32,7 +32,7 @@ export default function Uploads({ walletAddress, requestSui }) {
    // formData.append("walletAddress", walletAddress);
 
     // Trimite la backend
-    const res = await fetch("http://localhost:5000/api/upload", {
+    const res = await fetch("http://localhost:5001/api/upload", {
       method: "POST",
       body: formData,
     });

@@ -1,0 +1,8 @@
+# Node modules
+node_modules/
+
+# Cache
+node_modules/.cache/
+
+# Logs
+*.log
