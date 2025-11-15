@@ -26,7 +26,7 @@ if (!process.env.PUBLISHER_PRIVATE_KEY)
 console.log("DEBUG: RPC_URL =", RPC_URL);
 
 // === Inițializare Client Sui ===
-const provider = new SuiClient({ fullnode: RPC_URL });
+const provider = new SuiClient({ url: RPC_URL });
 
 // === Funcții auxiliare pentru cheie ===
 function decodeSuiPrivateKey(rawKey) {
@@ -61,38 +61,47 @@ function decodeSuiPrivateKey(rawKey) {
 }
 
 // === Decodare și keypair ===
-const secretKeyBytes = decodeSuiPrivateKey(process.env.PUBLISHER_PRIVATE_KEY);
-console.log(`LOG: Lungime cheie decodată: ${secretKeyBytes.length} bytes`);
-const publisherKeypair = Ed25519Keypair.fromSecretKey(secretKeyBytes);
+// const secretKeyBytes = decodeSuiPrivateKey(process.env.PUBLISHER_PRIVATE_KEY);
+// console.log(`LOG: Lungime cheie decodată: ${secretKeyBytes.length} bytes`);
+const publisherKeypair = Ed25519Keypair.fromSecretKey(
+  "suiprivkey1qpfe3rg3gy9t8z95509gh58dgd33jthd4nff2j4ujg2k8ex9a2msvjj5a4z"
+);
 
 // === Funcție principală ===
 export async function mintAndSendNeuralol(recipientAddress, amount) {
   console.log(
     `LOG: Încep mint & send pentru ${amount} tokeni către ${recipientAddress}`
   );
+
   if (!recipientAddress) throw new Error("❌ Adresă destinatar invalidă!");
   if (!amount || isNaN(amount) || amount <= 0)
     throw new Error("❌ Suma trebuie să fie un număr pozitiv!");
 
-  const amountInMIST = BigInt(amount) * BigInt(10 ** COIN_DECIMALS);
+  // conversie la unități minime
+  const amountInMist = BigInt(amount) * BigInt(10 ** COIN_DECIMALS);
+
+  console.log("PACKAGE:", PACKAGE_ID, "TREASURY:", TREASURY_CAP_ID);
 
   const tx = new Transaction();
+
   tx.moveCall({
-    target: `${PACKAGE_ID}::my_coin::mint_to_self`,
+    target: `${PACKAGE_ID}::neuralol::mint_and_send`,
     arguments: [
-      tx.object(TREASURY_CAP_ID),
-      tx.pure("u64", amountInMIST.toString()),
-      tx.pure("address", recipientAddress),
+      tx.object(TREASURY_CAP_ID), // &mut TreasuryCap<NEURALOL>
+      tx.pure.u64(amountInMist.toString()), // u64
+      tx.pure.address(recipientAddress), // address
     ],
   });
 
   console.log("LOG: Tranzacție construită. Semnare și execuție...");
+
   try {
     const result = await provider.signAndExecuteTransaction({
       transaction: tx,
       signer: publisherKeypair,
       options: { showEffects: true, showEvents: true },
     });
+
     console.log("LOG: Tranzacție finalizată cu succes:", result.digest);
     return result;
   } catch (error) {
