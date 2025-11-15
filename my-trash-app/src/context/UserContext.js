@@ -1,18 +1,21 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 
-// Contextul propriu-zis
 const UserContext = createContext();
 
-// Provider
 export const UserProvider = ({ children }) => {
-  const [userType, setUserType] = useState("user"); // default = user
+  const [user, setUser] = useState({
+    email: "Necunoscut", // poți completa manual aici
+    name: "Necunoscut", // poți completa manual aici
+    userType: "Utilizator", // poți completa manual aici
+  });
+
+  const [userType, setUserType] = useState("user"); // user sau admin
 
   return (
-    <UserContext.Provider value={{ userType, setUserType }}>
+    <UserContext.Provider value={{ user, setUser, userType, setUserType }}>
       {children}
     </UserContext.Provider>
   );
 };
 
-// Hook pentru a folosi contextul ușor
 export const useUser = () => useContext(UserContext);

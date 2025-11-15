@@ -1,6 +1,6 @@
 // src/components/Notificari.js
 import React from "react";
-import { Box, Typography, List, ListItem, ListItemText } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 
 export default function Notificari() {
   const mockNotifications = [
@@ -10,17 +10,45 @@ export default function Notificari() {
   ];
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800, mx: "auto" }}>
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{
+          fontFamily: "serif",
+          fontWeight: "bold",
+          color: "#2e7d32",
+          mb: 3,
+        }}
+      >
         Notificări
       </Typography>
-      <List>
+
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {mockNotifications.map((notif) => (
-          <ListItem key={notif.id}>
-            <ListItemText primary={notif.message} />
-          </ListItem>
+          <Paper
+            key={notif.id}
+            elevation={2}
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: "#f1f8e9",
+              transition: "transform 0.2s, box-shadow 0.2s",
+              "&:hover": {
+                transform: "translateY(-2px)",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              },
+            }}
+          >
+            <Typography
+              variant="body1"
+              sx={{ fontFamily: "serif", color: "#33691e" }}
+            >
+              {notif.message}
+            </Typography>
+          </Paper>
         ))}
-      </List>
+      </Box>
     </Box>
   );
 }

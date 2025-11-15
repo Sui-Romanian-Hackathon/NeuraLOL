@@ -1,12 +1,17 @@
-// src/components/Transactions.jsx
-import { Box, Typography, CircularProgress, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Button,
+  Paper,
+} from "@mui/material";
 import { useWalletKit } from "@mysten/wallet-kit";
 import { useQuery } from "@tanstack/react-query";
 import { client } from "../services/suiClient";
 
 export default function Transactions() {
   const { currentWallet, isConnected } = useWalletKit();
-  const address = currentWallet?.accounts?.[0]?.address;
+  const address = currentWallet?.accounts?.[0]?.address?.toLowerCase();
 
   const {
     data: txs,
@@ -18,55 +23,47 @@ export default function Transactions() {
     queryFn: async () => {
       if (!address) throw new Error("Address not found");
 
-      console.log("Caut tranzacții pentru:", address);
-
-      // 🟦 1. Tranzacții trimise
       const sent = await client.queryTransactionBlocks({
         filter: { FromAddress: address },
         limit: 50,
         order: "descending",
-        options: {
-          showEffects: true,
-          showBalanceChanges: true,
-          showInput: true,
-          showObjectChanges: true,
-        },
+        options: { showEffects: true, showBalanceChanges: true },
       });
 
-      // 🟩 2. Tranzacții primite
       const received = await client.queryTransactionBlocks({
         filter: { ToAddress: address },
         limit: 50,
         order: "descending",
-        options: {
-          showEffects: true,
-          showBalanceChanges: true,
-          showInput: true,
-          showObjectChanges: true,
-        },
+        options: { showEffects: true, showBalanceChanges: true },
       });
 
-      // 🟧 3. Combinație + sortare după timp
       const merged = [...sent.data, ...received.data];
 
-      merged.sort((a, b) => {
-        const ta = new Date(a.timestampMs || 0).getTime();
-        const tb = new Date(b.timestampMs || 0).getTime();
-        return tb - ta;
-      });
+      merged.sort((a, b) => (b.timestampMs || 0) - (a.timestampMs || 0));
 
-      // 🟨 4. Filtrare strict NeuraLOL
-      const neuralolTxs = merged.filter((tx) => {
-        const hasCoin = tx.balanceChanges?.some((b) =>
-          b.coinType?.toLowerCase().includes("neuralol")
-        );
-        const hasObject = tx.objectChanges?.some((o) =>
-          o.type?.toLowerCase().includes("neuralol")
-        );
-        return hasCoin || hasObject;
-      });
+      const neuralolTxs = merged
+        .map((tx) => {
+          if (!tx.balanceChanges) return null;
 
-      console.log("Tranzacții NeuraLOL:", neuralolTxs);
+          // Luăm doar NEURALOL
+          const changes = tx.balanceChanges
+            .filter((b) => b.coinType?.toLowerCase().includes("neuralol"))
+            .map((b) => {
+              const sign = sent.data.some((s) => s.digest === tx.digest)
+                ? "-"
+                : "+";
+              return { sign, amount: Math.abs(b.amount) };
+            });
+
+          if (changes.length === 0) return null;
+
+          return {
+            digest: tx.digest,
+            timestamp: tx.timestampMs,
+            changes,
+          };
+        })
+        .filter(Boolean);
 
       return neuralolTxs;
     },
@@ -75,22 +72,18 @@ export default function Transactions() {
     refetchInterval: 15000,
   });
 
-  if (!isConnected) {
+  if (!isConnected)
     return (
       <Typography>Conectează wallet-ul pentru a vedea tranzacțiile.</Typography>
     );
-  }
-
-  if (isLoading) {
+  if (isLoading)
     return (
       <Box sx={{ textAlign: "center", py: 8 }}>
         <CircularProgress />
         <Typography sx={{ mt: 2 }}>Se încarcă tranzacțiile...</Typography>
       </Box>
     );
-  }
-
-  if (error) {
+  if (error)
     return (
       <Box sx={{ textAlign: "center", py: 8 }}>
         <Typography color="error">Eroare: {error.message}</Typography>
@@ -99,35 +92,38 @@ export default function Transactions() {
         </Button>
       </Box>
     );
-  }
 
   return (
     <Box sx={{ py: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Tranzacții NeuraLOL ({txs.length})
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 3 }}>
+        Tranzacții NEURALOL ({txs.length})
       </Typography>
 
       {txs.length === 0 ? (
         <Typography color="text.secondary">
-          Nu există tranzacții NeuraLOL.
+          Nu există tranzacții NEURALOL.
         </Typography>
       ) : (
-        <Box component="ul" sx={{ m: 0, p: 0, listStyle: "none" }}>
+        <Box
+          component="ul"
+          sx={{
+            m: 0,
+            p: 0,
+            listStyle: "none",
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
           {txs.map((tx, index) => (
-            <Box
-              key={tx.digest + index} // index adăugat ca fallback pentru duplicate digest
-              component="li"
-              sx={{
-                mb: 2,
-                p: 2,
-                bgcolor: "#f5f5f5",
-                borderRadius: 2,
-              }}
+            <Paper
+              key={tx.digest + index}
+              elevation={1}
+              sx={{ p: 2, borderRadius: 2, bgcolor: "#f9f9f9" }}
             >
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                 Digest:
               </Typography>
-
               <a
                 href={`https://suiscan.xyz/testnet/tx/${tx.digest}`}
                 target="_blank"
@@ -137,23 +133,49 @@ export default function Transactions() {
                   textDecoration: "none",
                   fontFamily: "monospace",
                   wordBreak: "break-all",
+                  display: "block",
+                  marginBottom: "8px",
                 }}
               >
                 {tx.digest}
               </a>
 
-              {tx.balanceChanges?.map((b, i) => (
-                <Typography key={i} variant="body2">
-                  {b.amount > 0 ? "+" : ""}
-                  {b.amount} {b.coinType?.split("::").pop()}
+              {tx.changes.map((c, i) => (
+                <Typography
+                  key={i}
+                  variant="body1"
+                  sx={{
+                    fontWeight: "bold",
+                    color: c.sign === "+" ? "#2e7d32" : "#d32f2f",
+                  }}
+                >
+                  {c.sign}
+                  {c.amount} NEURALOL
                 </Typography>
               ))}
-            </Box>
+
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 1, display: "block" }}
+              >
+                {new Date(Number(tx.timestamp)).toLocaleString()}
+              </Typography>
+            </Paper>
           ))}
         </Box>
       )}
 
-      <Button onClick={refetch} variant="outlined" sx={{ mt: 3 }}>
+      <Button
+        onClick={refetch}
+        variant="contained"
+        sx={{
+          mt: 3,
+          backgroundColor: "#2e7d32",
+          color: "white",
+          "&:hover": { backgroundColor: "#27632a" },
+        }}
+      >
         Refresh
       </Button>
     </Box>

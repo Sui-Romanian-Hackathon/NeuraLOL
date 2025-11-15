@@ -1,6 +1,12 @@
 // src/components/Uploads.jsx
 import { useState } from "react";
-import { Typography, Button, Box, CircularProgress } from "@mui/material";
+import {
+  Typography,
+  Button,
+  Box,
+  CircularProgress,
+  Paper,
+} from "@mui/material";
 
 export default function Uploads({ walletAddress }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -10,14 +16,15 @@ export default function Uploads({ walletAddress }) {
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files.length > 0) {
       setSelectedFile(event.target.files[0]);
+      setMessage("");
     }
   };
 
   const handleUpload = async () => {
-  if (!selectedFile) {
-    setMessage("Te rog să selectezi un fișier.");
-    return;
-  }
+    if (!selectedFile) {
+      setMessage("Te rog să selectezi un fișier.");
+      return;
+    }
 
     if (!walletAddress) {
       setMessage("Te rog să conectezi wallet-ul.");
@@ -28,7 +35,6 @@ export default function Uploads({ walletAddress }) {
     setMessage("");
 
     try {
-      // === Upload imagine + ML detection + walletAddress ===
       const formData = new FormData();
       formData.append("image", selectedFile);
       formData.append("walletAddress", walletAddress);
@@ -48,9 +54,7 @@ export default function Uploads({ walletAddress }) {
       }
 
       if (data.tokenSent) {
-        setMessage(
-          `Gunoi detectat! Trimisi 100 NEURALOL către ${walletAddress}`
-        );
+        setMessage(`Gunoi detectat! Ai primit 100 NEURALOL în contul tău.`);
       } else {
         setMessage(
           `Gunoi detectat, dar tranzacția SUI a eșuat: ${data.message}`
@@ -67,11 +71,29 @@ export default function Uploads({ walletAddress }) {
   };
 
   return (
-    <Box sx={{ mt: 2 }}>
-      <Typography variant="h5" gutterBottom>
+    <Paper
+      elevation={3}
+      sx={{
+        p: 4,
+        borderRadius: 3,
+        maxWidth: 600,
+        margin: "0 auto",
+        textAlign: "center",
+        backgroundColor: "#f9f9f9",
+      }}
+    >
+      <Typography
+        variant="h4"
+        sx={{
+          fontFamily: "serif",
+          fontWeight: "bold",
+          color: "#2e7d32",
+          mb: 1,
+        }}
+      >
         Uploaduri + Recompensă NEURALOL
       </Typography>
-      <Typography color="text.secondary" gutterBottom>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         Încarcă o imagine pentru detectarea gunoiului. Dacă este detectat,
         primești token.
       </Typography>
@@ -80,18 +102,33 @@ export default function Uploads({ walletAddress }) {
         type="file"
         accept="image/*"
         onChange={handleFileChange}
-        style={{ marginBottom: "16px" }}
+        style={{
+          marginBottom: "20px",
+          padding: "10px",
+          borderRadius: "8px",
+          border: "1px solid #ccc",
+        }}
       />
 
       <Box>
         <Button
           variant="contained"
-          color="primary"
           onClick={handleUpload}
           disabled={loading}
+          sx={{
+            backgroundColor: "#2e7d32",
+            color: "white",
+            fontWeight: "bold",
+            px: 4,
+            py: 1.5,
+            borderRadius: 2,
+            "&:hover": {
+              backgroundColor: "#27632a",
+            },
+          }}
         >
           {loading ? (
-            <CircularProgress size={24} />
+            <CircularProgress size={24} sx={{ color: "white" }} />
           ) : (
             "Upload și primește NEURALOL"
           )}
@@ -99,10 +136,21 @@ export default function Uploads({ walletAddress }) {
       </Box>
 
       {message && (
-        <Typography color="text.secondary" sx={{ mt: 2 }}>
-          {message}
-        </Typography>
+        <Box
+          sx={{
+            mt: 3,
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: message.includes("Ai primit")
+              ? "#e8f5e9"
+              : "#fff3e0",
+            color: message.includes("Ai primit") ? "#2e7d32" : "#f57c00",
+            fontWeight: "medium",
+          }}
+        >
+          <Typography>{message}</Typography>
+        </Box>
       )}
-    </Box>
+    </Paper>
   );
 }
