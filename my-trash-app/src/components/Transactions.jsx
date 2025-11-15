@@ -6,7 +6,6 @@ import { client } from "../services/suiClient";
 
 export default function Transactions() {
   const { currentWallet, isConnected } = useWalletKit();
-
   const address = currentWallet?.accounts?.[0]?.address;
 
   const {
@@ -21,27 +20,59 @@ export default function Transactions() {
 
       console.log("Caut tranzacții pentru:", address);
 
-      const res = await client.queryTransactionBlocks({
-        filter: {
-          FromAddress: address,
-        },
-        limit: 20,
+      // 🟦 1. Tranzacții trimise
+      const sent = await client.queryTransactionBlocks({
+        filter: { FromAddress: address },
+        limit: 50,
         order: "descending",
         options: {
-          showInput: false,
-          showEffects: false,
-          showEvents: false,
-          showBalanceChanges: false,
+          showEffects: true,
+          showBalanceChanges: true,
+          showInput: true,
+          showObjectChanges: true,
         },
       });
 
-      console.log("Tranzacții:", res);
+      // 🟩 2. Tranzacții primite
+      const received = await client.queryTransactionBlocks({
+        filter: { ToAddress: address },
+        limit: 50,
+        order: "descending",
+        options: {
+          showEffects: true,
+          showBalanceChanges: true,
+          showInput: true,
+          showObjectChanges: true,
+        },
+      });
 
-      return res?.data || [];
+      // 🟧 3. Combinație + sortare după timp
+      const merged = [...sent.data, ...received.data];
+
+      merged.sort((a, b) => {
+        const ta = new Date(a.timestampMs || 0).getTime();
+        const tb = new Date(b.timestampMs || 0).getTime();
+        return tb - ta;
+      });
+
+      // 🟨 4. Filtrare strict NeuraLOL
+      const neuralolTxs = merged.filter((tx) => {
+        const hasCoin = tx.balanceChanges?.some((b) =>
+          b.coinType?.toLowerCase().includes("neuralol")
+        );
+        const hasObject = tx.objectChanges?.some((o) =>
+          o.type?.toLowerCase().includes("neuralol")
+        );
+        return hasCoin || hasObject;
+      });
+
+      console.log("Tranzacții NeuraLOL:", neuralolTxs);
+
+      return neuralolTxs;
     },
     enabled: isConnected && !!address,
     retry: 3,
-    refetchInterval: 12000,
+    refetchInterval: 15000,
   });
 
   if (!isConnected) {
@@ -73,16 +104,18 @@ export default function Transactions() {
   return (
     <Box sx={{ py: 3 }}>
       <Typography variant="h5" gutterBottom>
-        Ultimele tranzacții ({txs.length})
+        Tranzacții NeuraLOL ({txs.length})
       </Typography>
 
       {txs.length === 0 ? (
-        <Typography color="text.secondary">Nu există tranzacții.</Typography>
+        <Typography color="text.secondary">
+          Nu există tranzacții NeuraLOL.
+        </Typography>
       ) : (
         <Box component="ul" sx={{ m: 0, p: 0, listStyle: "none" }}>
-          {txs.map((tx) => (
+          {txs.map((tx, index) => (
             <Box
-              key={tx.digest}
+              key={tx.digest + index} // index adăugat ca fallback pentru duplicate digest
               component="li"
               sx={{
                 mb: 2,
@@ -108,6 +141,13 @@ export default function Transactions() {
               >
                 {tx.digest}
               </a>
+
+              {tx.balanceChanges?.map((b, i) => (
+                <Typography key={i} variant="body2">
+                  {b.amount > 0 ? "+" : ""}
+                  {b.amount} {b.coinType?.split("::").pop()}
+                </Typography>
+              ))}
             </Box>
           ))}
         </Box>
