@@ -1,11 +1,19 @@
 .App {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centrează pe verticală */
+  align-items: center;     /* centrează pe orizontală */
   text-align: center;
+  width: 100%;
+  height: 100%;            /* ocupă tot #root */
   padding: 2rem;
-  font-family: Arial, sans-serif;
+  box-sizing: border-box;
 }
+
 
 .App-header {
   max-width: 600px;
+  width: 100%;             /* pentru a ocupa tot spațiul disponibil */
   margin: 0 auto;
 }
 

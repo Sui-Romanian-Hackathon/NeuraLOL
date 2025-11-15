@@ -11,3 +11,14 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  /* Folosim 100vh pentru a ne asigura că ocupă înălțimea completă a ferestrei */
+  min-height: 100vh;
+  box-sizing: border-box;
+  /* Păstrați fontul consistent */
+  font-family: 'Roboto', sans-serif;
+}
