@@ -12,7 +12,7 @@ const { Ed25519Keypair } = require("@mysten/sui.js/keypairs/ed25519");
 const { TransactionBlock } = require("@mysten/sui.js/transactions");
 
 const app = express();
-const PORT = 5000;
+const PORT = 5001;
 
 // Middlewares NU MODIFICA
 app.use(
@@ -78,7 +78,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
 // === FUNCȚII AJUTĂTOARE ===
 function mlDetection(imagePath) {
   const result = spawnSync(
-    "python",
+    "python3",
     [path.join(__dirname, "ml", "predict.py"), imagePath],
     { encoding: "utf-8" }
   );
