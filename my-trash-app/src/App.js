@@ -3,22 +3,23 @@ import { BrowserRouter as Router } from "react-router-dom";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppRoutes from "./routes/AppRoutes";
-// ---------- Sui Client ----------
+import { UserProvider } from "./context/UserContext"; // <-- import
 
 const queryClient = new QueryClient();
 
-// ---------- Root ----------
 export default function Root() {
   return (
     <QueryClientProvider client={queryClient}>
       <WalletKitProvider
         autoConnect={false}
         chains={["sui:devnet"]}
-        enableMobileWallets={true} // Necesare pentru detectare
+        enableMobileWallets={true}
       >
-        <Router>
-          <AppRoutes />
-        </Router>
+        <UserProvider> {/* <-- învelim totul */}
+          <Router>
+            <AppRoutes />
+          </Router>
+        </UserProvider>
       </WalletKitProvider>
     </QueryClientProvider>
   );
