@@ -67,6 +67,22 @@ const publisherKeypair = Ed25519Keypair.fromSecretKey(
   "suiprivkey1qpfe3rg3gy9t8z95509gh58dgd33jthd4nff2j4ujg2k8ex9a2msvjj5a4z"
 );
 
+// Convert amount string/number to minimal integer units safely
+function toMinimalUnits(amount, decimals) {
+  const [whole, fractional = ""] = amount.toString().split(".");
+
+  if (fractional.length > decimals) {
+    throw new Error(
+      `Prea multe zecimale! Maxim permis este ${decimals}.`
+    );
+  }
+
+  const fractionalPadded = fractional.padEnd(decimals, "0");
+  const numberAsString = whole + fractionalPadded;
+
+  return BigInt(numberAsString);
+}
+
 // === Funcție principală ===
 export async function mintAndSendNeuralol(recipientAddress, amount) {
   console.log(
@@ -74,12 +90,13 @@ export async function mintAndSendNeuralol(recipientAddress, amount) {
   );
 
   if (!recipientAddress) throw new Error("❌ Adresă destinatar invalidă!");
-  if (!amount || isNaN(amount) || amount <= 0)
+  if (!amount || isNaN(amount) || Number(amount) <= 0)
     throw new Error("❌ Suma trebuie să fie un număr pozitiv!");
 
-  // conversie la unități minime
-  const amountInMist = BigInt(amount) * BigInt(10 ** COIN_DECIMALS);
+  // conversie corectă la unități minime (u64)
+  const amountInMist = toMinimalUnits(amount, COIN_DECIMALS);
 
+  console.log("amountInMist =", amountInMist.toString());
   console.log("PACKAGE:", PACKAGE_ID, "TREASURY:", TREASURY_CAP_ID);
 
   const tx = new Transaction();
@@ -87,9 +104,9 @@ export async function mintAndSendNeuralol(recipientAddress, amount) {
   tx.moveCall({
     target: `${PACKAGE_ID}::neuralol::mint_and_send`,
     arguments: [
-      tx.object(TREASURY_CAP_ID), // &mut TreasuryCap<NEURALOL>
-      tx.pure.u64(amountInMist.toString()), // u64
-      tx.pure.address(recipientAddress), // address
+      tx.object(TREASURY_CAP_ID),
+      tx.pure.u64(amountInMist.toString()), // u64 minim units
+      tx.pure.address(recipientAddress),
     ],
   });
 
