@@ -1,7 +1,8 @@
+// src/components/Uploads.jsx
 import { useState } from "react";
 import { Typography, Button, Box, CircularProgress } from "@mui/material";
 
-export default function Uploads({ walletAddress, requestSui }) {
+export default function Uploads({ walletAddress }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -18,52 +19,61 @@ export default function Uploads({ walletAddress, requestSui }) {
     return;
   }
 
- /* if (!walletAddress) {
-    setMessage("Te rog să introduci walletAddress.");
-    return;
-  }*/
+    if (!walletAddress) {
+      setMessage("Te rog să conectezi wallet-ul.");
+      return;
+    }
 
-  setLoading(true);
-  setMessage("");
+    setLoading(true);
+    setMessage("");
 
-  try {
-    const formData = new FormData();
-    formData.append("image", selectedFile);
-   // formData.append("walletAddress", walletAddress);
+    try {
+      // === Upload imagine + ML detection + walletAddress ===
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+      formData.append("walletAddress", walletAddress);
 
-    // Trimite la backend
-    const res = await fetch("http://localhost:5001/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+      const res = await fetch("http://localhost:5001/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await res.json();
-    console.log("Backend Response:", data);
+      const data = await res.json();
+      console.log("Backend Response:", data);
 
-    if (data.success) {
-  setMessage(
-    `Gunoi detectat!`
-  );
-} else {
-  setMessage(`Niciun gunoi detectat.`);
-}
+      if (!data.success) {
+        setMessage(data.message || "Niciun gunoi detectat.");
+        setLoading(false);
+        return;
+      }
 
-  } catch (err) {
-    console.error(err);
-    setMessage("A apărut o eroare la upload sau la ML.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+      if (data.tokenSent) {
+        setMessage(
+          `Gunoi detectat! Trimisi 100 NEURALOL către ${walletAddress}`
+        );
+      } else {
+        setMessage(
+          `Gunoi detectat, dar tranzacția SUI a eșuat: ${data.message}`
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage(
+        "A apărut o eroare la upload, ML sau tranzacția SUI. Vezi consola."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box sx={{ mt: 2 }}>
       <Typography variant="h5" gutterBottom>
-        Uploaduri
+        Uploaduri + Recompensă NEURALOL
       </Typography>
       <Typography color="text.secondary" gutterBottom>
-        Aici poți adăuga upload IPFS pentru NFT-uri.
+        Încarcă o imagine pentru detectarea gunoiului. Dacă este detectat,
+        primești token.
       </Typography>
 
       <input
@@ -80,7 +90,11 @@ export default function Uploads({ walletAddress, requestSui }) {
           onClick={handleUpload}
           disabled={loading}
         >
-          {loading ? <CircularProgress size={24} /> : "Upload și adaugă SUI"}
+          {loading ? (
+            <CircularProgress size={24} />
+          ) : (
+            "Upload și primește NEURALOL"
+          )}
         </Button>
       </Box>
 

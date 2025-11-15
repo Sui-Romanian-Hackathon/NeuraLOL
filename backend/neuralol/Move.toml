@@ -1,0 +1,11 @@
+[package]
+name = "my_coin_package"
+version = "0.0.1"
+edition = "2024.beta"
+
+[dependencies]
+# FOLOSEȘTE HASH-UL DETECTAT DE EROARE PENTRU A EVITA CONFLICTUL:
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "494fa6ede17f366f1cd850f01ccb9f42dc75c470" }
+
+[addresses]
+my_package = "0x0"

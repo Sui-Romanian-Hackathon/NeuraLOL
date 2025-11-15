@@ -12,8 +12,8 @@ export default function Root() {
     <QueryClientProvider client={queryClient}>
       <WalletKitProvider
         autoConnect={false}
-        chains={["sui:devnet"]}
-        enableMobileWallets={true}
+        chains={["sui:testnet"]}
+        enableMobileWallets={true} // Necesare pentru detectare
       >
         <UserProvider> {/* <-- învelim totul */}
           <Router>

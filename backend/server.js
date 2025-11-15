@@ -1,29 +1,30 @@
-const os = require("os");
+// backend/server.js
+import os from "os";
+import express from "express";
+import multer from "multer";
+import cors from "cors";
+import fs from "fs";
+import path from "path";
+import { spawnSync } from "child_process";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import { mintAndSendNeuralol } from "./contractToken.js";
 
-// Importuri NU MODIFICA
-require("dotenv").config();
-const express = require("express");
-const multer = require("multer");
-const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
-const { spawnSync } = require("child_process");
+dotenv.config();
 
-const { getFullnodeUrl, SuiClient } = require("@mysten/sui.js/client");
-const { Ed25519Keypair } = require("@mysten/sui.js/keypairs/ed25519");
-const { TransactionBlock } = require("@mysten/sui.js/transactions");
+// Fix __dirname în ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Folosim Python 3.11 direct
+const pythonExecutable =
+  "/Users/joitafabian/.pyenv/versions/3.11.8/bin/python3";
 
 const app = express();
-const PORT = 5001;
+const PORT = process.env.PORT || 5001;
 
-const pythonExecutable = os.platform() === "darwin" ? "python3" : "python";
-
-// Middlewares NU MODIFICA
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-  })
-);
+// Middlewares
+app.use(cors({ origin: "http://localhost:3000" }));
 app.use(express.json());
 
 // Folder uploads
@@ -45,18 +46,18 @@ const upload = multer({
   },
 });
 
-// Ruta test
+// ==================== ROUTA TEST ====================
 app.get("/", (req, res) => {
   res.json({ message: "Backend-ul funcționează!" });
 });
 
-// Ruta upload + ML + Recompensă
+// ==================== ROUTA UPLOAD + ML + TOKEN ====================
 app.post("/api/upload", upload.single("image"), async (req, res) => {
   try {
     const imagePath = req.file.path;
-    console.log("Imagine primită pentru ML:", imagePath);
+    console.log("SERVER LOG: Imagine primită pentru ML:", imagePath);
 
-    // === ML Detection ===
+    // Rulează ML
     const hasTrash = mlDetection(imagePath);
 
     if (hasTrash === null) {
@@ -65,27 +66,56 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
         .json({ success: false, message: "Eroare ML Python" });
     }
 
+    // Dacă ML detectează gunoi
     if (hasTrash) {
-      res.json({ success: true, message: "Gunoi detectat!" });
-    } else {
-      res.json({ success: false, message: "Niciun gunoi detectat." });
-    }
+      const { walletAddress } = req.body;
 
-    // NU mai ștergem imaginea, astfel rămâne în uploads
-    // fs.unlinkSync(imagePath);
+      if (!walletAddress) {
+        return res.status(400).json({
+          success: true,
+          message: "Gunoi detectat, dar lipseste walletAddress",
+        });
+      }
+
+      try {
+        const txResult = await mintAndSendNeuralol(walletAddress, 100);
+        return res.json({
+          success: true,
+          ml: true,
+          tokenSent: true,
+          message: `Gunoi detectat! Trimisi 100 NEURALOL către ${walletAddress}`,
+          tx: txResult,
+        });
+      } catch (err) {
+        console.error("Eroare la trimitere token:", err);
+        return res.status(500).json({
+          success: true,
+          ml: true,
+          tokenSent: false,
+          message: `Gunoi detectat, dar tranzacția SUI a eșuat: ${err.message}`,
+        });
+      }
+    } else {
+      // Dacă ML nu detectează gunoi
+      return res.json({
+        success: false,
+        ml: false,
+        message: "Niciun gunoi detectat.",
+      });
+    }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Eroare server" });
+    res.status(500).json({ success: false, message: "Eroare server" });
   }
 });
 
-// === FUNCȚII AJUTĂTOARE ===
+// ==================== FUNCȚIA ML Detection ====================
 function mlDetection(imagePath) {
   const result = spawnSync(
-  pythonExecutable,
-  [path.join(__dirname, "ml", "predict.py"), imagePath],
-  { encoding: "utf-8" }
-);
+    pythonExecutable,
+    [path.join(__dirname, "ml", "predict.py"), imagePath],
+    { encoding: "utf-8" }
+  );
 
   console.log("===== Debug ML =====");
   console.log("Imagine trimisă la Python:", imagePath);
@@ -98,12 +128,11 @@ function mlDetection(imagePath) {
     return null; // eroare
   }
 
-  const output = result.stdout.trim().split("\n").pop();  // ultima linie
+  const output = result.stdout.trim().split("\n").pop(); // ultima linie
   return output === "Garbage";
-
 }
 
-// Pornire server  NU MODIFICA
+// ==================== Pornire server ====================
 app.listen(PORT, () => {
   console.log(`Backend: http://localhost:${PORT}`);
 });
