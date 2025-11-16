@@ -1,10 +1,15 @@
 # NeuraLOL Project Setup
 
+Welcome! Make sure you have the **Slush web extension/plugin** installed to fully utilize our demo.
+
+Check out our demo website here:
+[Demo Website](https://preyouthful-unescutcheoned-jayce.ngrok-free.dev)
+
 Follow the steps below to set up and run the NeuraLOL project on your system.
 
 ---
 
-## MacOS
+## MacOS Setup
 
 1. **Install Homebrew** (if you don’t have it):
 
@@ -18,35 +23,33 @@ Follow the steps below to set up and run the NeuraLOL project on your system.
 brew install node
 ```
 
-3. **Clone the repository** at a desired location:
+3. **Clone the repository**:
 
 ```bash
 git clone https://github.com/Sui-Romanian-Hackathon/NeuraLOL.git
 ```
 
-4. **Navigate to the repo** and open **two separate terminals**:  
+4. **Open two terminals and navigate to the project directories**:
 
-- **Terminal 1 – Backend**  
-  Navigate to `NeuraLOL/backend` and run the server:
+* **Terminal 1 – Backend**
 
-```bash
-cd NeuraLOL/backend
-npm install
-npm start
-```
+  ```bash
+  cd NeuraLOL/backend
+  npm install
+  npm start
+  ```
 
-- **Terminal 2 – Frontend**  
-  Navigate to `NeuraLOL/my-trash-app` and run the frontend:
+* **Terminal 2 – Frontend**
 
-```bash
-cd NeuraLOL/my-trash-app
-npm install
-npm start
-```
+  ```bash
+  cd NeuraLOL/my-trash-app
+  npm install
+  npm start
+  ```
 
 ---
 
-## Windows
+## Windows Setup
 
 1. **Install Node.js** via PowerShell:
 
@@ -54,72 +57,78 @@ npm start
 winget install OpenJS.NodeJS
 ```
 
-2. **Clone the repository** at a desired location:
+2. **Clone the repository**:
 
 ```powershell
 git clone https://github.com/Sui-Romanian-Hackathon/NeuraLOL.git
 ```
 
-3. **Navigate to the repo** and open **two separate terminals**:  
+3. **Open two terminals and navigate to the project directories**:
 
-- **Terminal 1 – Backend**  
+* **Terminal 1 – Backend**
 
-```powershell
-cd NeuraLOL\backend
-npm install
-npm start
-```
+  ```powershell
+  cd NeuraLOL\backend
+  npm install
+  npm start
+  ```
 
-- **Terminal 2 – Frontend**  
+* **Terminal 2 – Frontend**
 
-```powershell
-cd NeuraLOL\my-trash-app
-npm install
-npm start
-```
+  ```powershell
+  cd NeuraLOL\my-trash-app
+  npm install
+  npm start
+  ```
 
 ---
 
 ## Troubleshooting
 
-Here are common issues and solutions when setting up the project:
+**1. `npm install` fails**
 
-1. **`npm install` fails**  
-   - Make sure Node.js is installed correctly. Run `node -v` and `npm -v`.  
-   - Delete `node_modules` and `package-lock.json` and try again:
+* Ensure Node.js is installed correctly by running `node -v` and `npm -v`.
+* Delete `node_modules` and `package-lock.json`, then reinstall:
 
 ```bash
 rm -rf node_modules package-lock.json
 npm install
 ```
 
-2. **Port already in use**  
-   - If the server or frontend cannot start because a port is busy, either stop the process using it or change the port.  
-   - On MacOS/Linux, check running processes with:
+**2. Port already in use**
+
+* Stop the process using the port or choose a different one.
+* On MacOS/Linux:
 
 ```bash
 lsof -i :<port>
 kill -9 <pid>
 ```
 
-3. **Environment variables missing**  
-   - Make sure you have a `.env` file in `backend` with all required variables (e.g., `SUI_RPC_URL`, `NEURALOL_PACKAGE_ID`, `NEURALOL_TREASURY_CAP_ID`, `PUBLISHER_PRIVATE_KEY`).  
-   - Without these, the backend will throw errors.
+**3. Environment variables missing**
 
-4. **Node version mismatch**  
-   - This project uses Node.js **v24+**.  
-   - Using older versions may result in `ERR_MODULE_NOT_FOUND` or ESM-related errors.
+* Ensure a `.env` file exists in `backend` with:
 
-5. **Frontend not connecting to backend**  
-   - Ensure both frontend and backend are running in separate terminals.  
-   - Check that the frontend is pointing to the correct backend URL (usually `http://localhost:3000` or as configured).
+  * `SUI_RPC_URL`
+  * `NEURALOL_PACKAGE_ID`
+  * `NEURALOL_TREASURY_CAP_ID`
+  * `PUBLISHER_PRIVATE_KEY`
+
+**4. Node version mismatch**
+
+* Node.js **v24+** is required. Older versions may cause ESM or module errors.
+
+**5. Frontend not connecting to backend**
+
+* Make sure both backend and frontend are running in separate terminals.
+* Verify the frontend points to the correct backend URL (usually `http://localhost:3000`).
 
 ---
 
 ## Summary
 
-- Backend and frontend run in **separate terminals**.
-- Node.js v24+ is required.
-- `npm install` restores dependencies; `package-lock.json` ensures consistent versions.
-- `.gitignore` prevents committing `node_modules` or sensitive `.env` files.
-
+* Run backend and frontend in separate terminals.
+* Node.js v24+ is required.
+* Use `npm install` to restore dependencies; `package-lock.json` ensures consistent versions.
+* `.gitignore` prevents committing `node_modules` and sensitive `.env` files.
+* Visit the [demo website](https://preyouthful-unescutcheoned-jayce.ngrok-free.dev) with the Slush plugin for a live preview.
