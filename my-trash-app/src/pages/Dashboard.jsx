@@ -1,4 +1,4 @@
-// Merged Dashboard.js – Stilizare profesionistă
+// DashboardWithBanner.js – Dashboard + Improved Scrolling Logos Banner
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -12,7 +12,6 @@ import {
   Box,
   useTheme,
   useMediaQuery,
-  Button,
 } from "@mui/material";
 
 import { useWalletKit } from "@mysten/wallet-kit";
@@ -31,11 +30,18 @@ import Notificari from "../components/Notificari";
 import Raportari from "../components/Raportari";
 import StatusSesizari from "../components/StatusSesizari";
 import Statistici from "../components/Statistici";
+import Footer from "../components/Footer";
 import { useUser } from "../context/UserContext";
+
+// NEW: Logo imports
+import logo1 from "../assets/sponsorLogo1.png";
+import logo2 from "../assets/sponsorLogo1.png";
+import logo3 from "../assets/sponsorLogo1.png";
+import logo4 from "../assets/sponsorLogo2.jpg";
+import logo5 from "../assets/sponsorLogo2.jpg";
 
 const primaryGreen = "#2e7d32";
 const lightGreen = "#e8f5e9";
-const secondaryGreen = "#c8e6c9";
 const heroOverlay = "rgba(46,125,50,0.65)";
 
 function UserTypeSelector() {
@@ -74,6 +80,78 @@ function UserTypeSelector() {
   );
 }
 
+// NEW: Logo Banner Component
+// export default function Footer() {
+//   const logos = [logo1, logo2, logo3, logo4, logo5];
+
+//   return (
+//     <Box
+//       component="footer"
+//       sx={{
+//         width: "100%",
+//         backgroundColor: "#ffffff",
+//         borderTop: "1px solid rgba(0,0,0,0.08)",
+//         mt: 6,
+//         py: 4,
+//       }}
+//     >
+//       {/* Logos Row */}
+//       <Box
+//         sx={{
+//           maxWidth: 1200,
+//           mx: "auto",
+//           px: 3,
+//           display: "grid",
+//           gridTemplateColumns: {
+//             xs: "repeat(2, 1fr)",
+//             sm: "repeat(3, 1fr)",
+//             md: "repeat(5, 1fr)",
+//           },
+//           alignItems: "center",
+//           justifyItems: "center",
+//           gap: 4,
+//           mb: 3,
+//         }}
+//       >
+//         {logos.map((src, idx) => (
+//           <Box
+//             key={idx}
+//             component="img"
+//             src={src}
+//             alt="sponsor"
+//             loading="lazy"
+//             sx={{
+//               height: 45,
+//               maxWidth: "120px",
+//               filter: "grayscale(100%)",
+//               opacity: 0.8,
+//               transition: "0.3s",
+//               "&:hover": {
+//                 opacity: 1,
+//                 filter: "none",
+//               },
+//             }}
+//           />
+//         ))}
+//       </Box>
+
+//       {/* Copyright */}
+//       <Typography
+//         variant="body2"
+//         sx={{
+//           textAlign: "center",
+//           color: "rgba(0,0,0,0.6)",
+//           fontFamily: "serif",
+//           fontSize: "0.9rem",
+//         }}
+//       >
+//         © 2025 NeuraLOL — All Rights Reserved
+//       </Typography>
+//     </Box>
+//   );
+// }
+
+
 export default function Dashboard() {
   const { userType } = useUser();
   const location = useLocation();
@@ -89,68 +167,24 @@ export default function Dashboard() {
   const allTabs = {
     user: [
       { label: "Cont", path: "/dashboard/account", component: <Account /> },
-      {
-        label: "Tranzacții",
-        path: "/dashboard/transactions",
-        component: <Transactions />,
-      },
-      {
-        label: "Uploaduri",
-        path: "/dashboard/uploads",
-        component: <Uploads walletAddress={walletAddress} />,
-      },
+      { label: "Tranzacții", path: "/dashboard/transactions", component: <Transactions /> },
+      { label: "Uploaduri", path: "/dashboard/uploads", component: <Uploads walletAddress={walletAddress} /> },
       { label: "Sold", path: "/dashboard/balance", component: <Balance /> },
       { label: "NFT", path: "/dashboard/nfts", component: <NFTs /> },
-      {
-        label: "Clasament",
-        path: "/dashboard/clasament",
-        component: <Clasament />,
-      },
-      {
-        label: "Notificări",
-        path: "/dashboard/notificari",
-        component: <Notificari />,
-      },
+      { label: "Clasament", path: "/dashboard/clasament", component: <Clasament /> },
+      { label: "Notificări", path: "/dashboard/notificari", component: <Notificari /> },
     ],
     admin: [
       { label: "Cont", path: "/dashboard/account", component: <Account /> },
-      {
-        label: "Tranzacții",
-        path: "/dashboard/transactions",
-        component: <Transactions />,
-      },
-      {
-        label: "Uploaduri",
-        path: "/dashboard/uploads",
-        component: <Uploads walletAddress={walletAddress} />,
-      },
+      { label: "Tranzacții", path: "/dashboard/transactions", component: <Transactions /> },
+      { label: "Uploaduri", path: "/dashboard/uploads", component: <Uploads walletAddress={walletAddress} /> },
       { label: "Sold", path: "/dashboard/balance", component: <Balance /> },
       { label: "NFT", path: "/dashboard/nfts", component: <NFTs /> },
-      {
-        label: "Clasament",
-        path: "/dashboard/clasament",
-        component: <Clasament />,
-      },
-      {
-        label: "Notificări",
-        path: "/dashboard/notificari",
-        component: <Notificari />,
-      },
-      {
-        label: "Raportări",
-        path: "/dashboard/raportari",
-        component: <Raportari />,
-      },
-      {
-        label: "Status Sesizări",
-        path: "/dashboard/status-sesizari",
-        component: <StatusSesizari />,
-      },
-      {
-        label: "Statistici",
-        path: "/dashboard/statistici",
-        component: <Statistici />,
-      },
+      { label: "Clasament", path: "/dashboard/clasament", component: <Clasament /> },
+      { label: "Notificări", path: "/dashboard/notificari", component: <Notificari /> },
+      { label: "Raportări", path: "/dashboard/raportari", component: <Raportari /> },
+      { label: "Status Sesizări", path: "/dashboard/status-sesizari", component: <StatusSesizari /> },
+      { label: "Statistici", path: "/dashboard/statistici", component: <Statistici /> },
     ],
   };
 
@@ -161,8 +195,7 @@ export default function Dashboard() {
   useEffect(() => {
     const idx = TAB_PATHS.findIndex((p) => location.pathname.startsWith(p));
     if (idx !== -1) setValue(idx);
-    else if (location.pathname === "/dashboard")
-      navigate(TAB_PATHS[0], { replace: true });
+    else if (location.pathname === "/dashboard") navigate(TAB_PATHS[0], { replace: true });
   }, [location.pathname, navigate, TAB_PATHS]);
 
   const handleChange = (_, newValue) => {
@@ -171,42 +204,16 @@ export default function Dashboard() {
   };
 
   return (
-    <Box
-      sx={{ width: "100%", minHeight: "100vh", backgroundColor: lightGreen }}
-    >
+    <Box sx={{ width: "100%", minHeight: "100vh", backgroundColor: lightGreen }}>
       {/* HEADER */}
       <AppBar
         position="static"
-        sx={{
-          backgroundColor: "#fff",
-          color: "#333",
-          boxShadow: "0 3px 6px rgba(0,0,0,0.08)",
-        }}
+        sx={{ backgroundColor: "#fff", color: "#333", boxShadow: "0 3px 6px rgba(0,0,0,0.08)" }}
       >
-        <Toolbar
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            maxWidth: 1200,
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Box
-              component="img"
-              src={logoImage}
-              alt="Logo"
-              sx={{ width: 70, height: 70 }}
-            />
-            <Typography
-              variant="h5"
-              sx={{
-                fontFamily: "serif",
-                fontWeight: "700",
-                color: primaryGreen,
-              }}
-            >
+            <Box component="img" src={logoImage} alt="Logo" sx={{ width: 70, height: 70 }} />
+            <Typography variant="h5" sx={{ fontFamily: "serif", fontWeight: "700", color: primaryGreen }}>
               CleanScan
             </Typography>
           </Box>
@@ -229,86 +236,24 @@ export default function Dashboard() {
             filter: "brightness(0.75)",
           }}
         />
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: heroOverlay,
-          }}
-        />
+        <Box sx={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: heroOverlay }} />
+
         <Box sx={{ position: "relative", zIndex: 2, color: "white", px: 3 }}>
-          <Typography
-            variant="h3"
-            sx={{ fontFamily: "serif", fontWeight: "700", mb: 2 }}
-          >
+          <Typography variant="h3" sx={{ fontFamily: "serif", fontWeight: "700", mb: 2 }}>
             Curated Sustainability for Responsible Citizens
           </Typography>
-          <Typography
-            variant="h6"
-            sx={{ fontFamily: "serif", maxWidth: 600, mx: "auto", mb: 4 }}
-          >
-            Descoperiți progresul, raportați problemele și câștigați recompense
-            pentru un mediu mai curat.
+          <Typography variant="h6" sx={{ fontFamily: "serif", maxWidth: 600, mx: "auto", mb: 4 }}>
+            Descoperiți progresul, raportați problemele și câștigați recompense pentru un mediu mai curat.
           </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              gap: 2,
-              flexWrap: "wrap",
-            }}
-          >
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: secondaryGreen,
-                color: "#333",
-                fontWeight: "600",
-                px: 4,
-                py: 1.5,
-                borderRadius: 3,
-                "&:hover": {
-                  backgroundColor: "#b2dfbb",
-                  transform: "translateY(-2px)",
-                },
-              }}
-              onClick={() => navigate(TAB_PATHS[1])}
-            >
-              Vezi Progresul
-            </Button>
-            <Button
-              variant="outlined"
-              sx={{
-                color: "white",
-                borderColor: "white",
-                fontWeight: "bold",
-                borderRadius: 2,
-                px: 4,
-                py: 1.5,
-                "&:hover": {
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  borderColor: "white",
-                },
-              }}
-              onClick={() => navigate("/dashboard/uploads")}
-            >
-              Raportează o Problemă
-            </Button>
-          </Box>
         </Box>
       </Box>
 
+      {/* LOGO BANNER */}
+      {/* <LogosBanner /> */}
+
       {/* TABS */}
       {isMobile ? (
-        <Select
-          value={value}
-          onChange={handleChange}
-          fullWidth
-          sx={{ mb: 2, px: 2 }}
-        >
+        <Select value={value} onChange={handleChange} fullWidth sx={{ mb: 2, px: 2 }}>
           {TAB_LABELS.map((label, idx) => (
             <MenuItem key={label} value={idx}>
               {label}
@@ -337,6 +282,7 @@ export default function Dashboard() {
           <Box sx={{ maxWidth: 1200, mx: "auto", pt: 4 }}>{tab.component}</Box>
         </TabPanel>
       ))}
+      <Footer />
     </Box>
   );
 }
